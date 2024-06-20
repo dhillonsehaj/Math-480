@@ -82,7 +82,7 @@ def permutations_avoiding_231(n):
       output.remove(perm)
     return output  # return appropriate permutations
 
-def triangulations(n, vertices=None):
+def triangulations_old(n, vertices=None):  # This is the code I originally came up with, it was inefficient so the optimized output/efficiency code is below in accordance with course policy using course tools. It was inefficient because the output file was ~2GB. For the most part, the code is still my original code with some small tweaks to check for redundant or duplicated triangulations using additional structures and if/else/for blocks.
   """
   Returns a set of all possible triangulations of an n-sided polygon. A triangulation
   is represented as a tuple of internal edges. Vertices are labeled 0 through n-1 clockwise.
@@ -119,3 +119,45 @@ def triangulations(n, vertices=None):
           output.add(tuple(edges))  # save tuple
     return output  # formatting is kinda off and there are some duplicates but it finds all the possible
                    # triangulations of an n-sided polygon.
+
+def triangulations(n, vertices=None):
+    if n < 3:
+        return set()
+    elif n == 3:
+        return {tuple()}
+    else:
+        if vertices is None:
+            vertices = list(range(n))
+        output = set()
+        seen = set()  # supposedly to reduce redundant/duplicates found during the process
+        for idx, i in enumerate(vertices[:-1]):
+            end = n if idx > 0 else n - 1
+            for jdx, j in zip(range(idx + 2, end), vertices[idx + 2:end]):
+                edges = [tuple(sorted([i, j]))]  # help reduce redundancy
+                sub_triangulations1 = triangulations(jdx - idx + 1, vertices[idx:jdx + 1])
+                sub_triangulations2 = triangulations(n - jdx + idx + 1, vertices[jdx:] + vertices[:idx + 1])
+                if sub_triangulations1 and sub_triangulations2:  # both return something
+                    for sub1 in sub_triangulations1:
+                        for sub2 in sub_triangulations2:
+                            triangulation = tuple(sorted(edges + list(sub1) + list(sub2)))  # add these edges and recursed
+                            if triangulation not in seen:
+                                seen.add(triangulation)  # track redundancy
+                                output.add(triangulation)  # track output
+                elif sub_triangulations1:  # only first returned
+                    for sub1 in sub_triangulations1:
+                        triangulation = tuple(sorted(edges + list(sub1)))  # add these edges and recursed
+                        if triangulation not in seen:
+                            seen.add(triangulation)  # track redundancy
+                            output.add(triangulation)  # track output
+                elif sub_triangulations2:  # only second returned
+                    for sub2 in sub_triangulations2:
+                        triangulation = tuple(sorted(edges + list(sub2)))  # add these edges and recursed
+                        if triangulation not in seen:
+                            seen.add(triangulation)  # track redundancy
+                            output.add(triangulation)  # track output
+                else:  # nothing returned
+                    triangulation = tuple(edges)  # only these edges
+                    if triangulation not in seen:  # make sure not redundant
+                        seen.add(triangulation)  # track redundancy
+                        output.add(triangulation)  # track output
+        return output
