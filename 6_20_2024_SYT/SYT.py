@@ -21,7 +21,22 @@ def is_valid_SYT(candidate):
   >>> is_valid_SYT(((1, 2, 3), (5, 4), (6))
   False
   """
-  return False
+  # return False
+  for row in range(len(candidate)):
+    if tuple(candidate[row]) != tuple(sorted(candidate[row])):
+      return False
+
+  max_columns = max(len(row) for row in candidate)
+  for col in range(max_columns):
+    columns = []
+    for row in candidate:
+      if col < len(row):
+        columns.append(row[col])
+    # columns = [candidate[row][col] for row in range(len(candidate))]
+    if columns != sorted(columns):
+      return False
+
+  return True
 
 def reshape_perm(perm, shape):
   """
@@ -38,7 +53,13 @@ def reshape_perm(perm, shape):
   >>> reshape_perm((1, 2, 3, 4, 5, 6), (3, 2, 1))
   ((1, 2, 3), (4, 5), (6,))
   """
-  return tuple()
+  # return tuple()
+  output = []
+  idx = 0
+  for i in shape:
+    output.append(perm[idx:idx + i])
+    idx = idx + i
+  return tuple(output)
 
 def SYTs(shape):
   """
@@ -56,8 +77,22 @@ def SYTs(shape):
   """
 
   n = sum(shape)
+  tableau = [[] for _ in range(len(shape))]
   results = []
+  generate_STY(shape, tableau, 1, results)
   return results
+
+def generate_STY(shape, tableau, index, results):
+  if index > sum(shape):
+    if is_valid_SYT(tableau):
+      results.append(tuple(tuple(row) for row in tableau))
+    return
+
+  for i in range(len(tableau)):
+    if len(tableau[i]) < shape[i]:
+      tableau[i].append(index)
+      generate_STY(shape, tableau, index + 1, results)
+      tableau[i].pop()
 
 def random_SYT(shape):
   """
@@ -75,7 +110,13 @@ def random_SYT(shape):
   >>> random_SYT((2, 1))
   ((1, 2), (3,))
   """
-  return tuple()
+  # return tuple()
+  n = sum(shape)
+  while True:
+    perm = random.sample(range(1, n + 1), n)
+    tableau = reshape_perm(perm, shape)
+    if is_valid_SYT(tableau):
+      return tableau
 
 def random_SYT_2(shape):
   """
@@ -93,4 +134,12 @@ def random_SYT_2(shape):
   >>> random_SYT_2((2, 1))
   ((1, 2), (3,))
   """
-  return tuple()
+  # return tuple()
+  tableau = [[0] * i for i in shape]
+  n = sum(shape)
+  index = 1
+  for i in range(len(shape)):
+    for j in range(shape[i]):
+      tableau[i][j] = index
+      index += 1
+  return tuple(tuple(row) for row in tableau)
