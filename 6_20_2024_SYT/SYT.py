@@ -57,7 +57,7 @@ def reshape_perm(perm, shape):
   output = []
   idx = 0
   for i in shape:
-    output.append(perm[idx:idx + i])
+    output.append(tuple(perm[idx:idx + i]))
     idx = idx + i
   return tuple(output)
 
@@ -137,9 +137,24 @@ def random_SYT_2(shape):
   # return tuple()
   tableau = [[0] * i for i in shape]
   n = sum(shape)
-  index = 1
-  for i in range(len(shape)):
-    for j in range(shape[i]):
+  for index in list(range(1, n + 1)):
+    potential_spots = []
+    for i in range(len(shape)):
+        for j in range(shape[i]):
+            if tableau[i][j] == 0:
+                if (j == 0 or (tableau[i][j-1] < index and tableau[i][j-1] != 0)) and (i == 0 or (tableau[i-1][j] < index and tableau[i-1][j] != 0)):
+                    potential_spots.append((i, j))
+
+    if potential_spots:
+      i, j = random.choice(potential_spots)
       tableau[i][j] = index
-      index += 1
+
   return tuple(tuple(row) for row in tableau)
+
+  # This code was greedy, but it did not introduce much randomness, utilized course approved tools to modify in order to introduce randomness.
+  # index = 1
+  # for i in range(len(shape)):
+  #   for j in range(shape[i]):
+  #     tableau[i][j] = index
+  #     index += 1
+  # return tuple(tuple(row) for row in tableau)
