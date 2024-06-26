@@ -19,8 +19,16 @@ def parenthesization_to_tensor(parenthesization):
         Each element in the tensor is either 0 or 1, representing whether the corresponding
         parenthesization character is "(" or ")".
     """
-    # TODO
-    pass
+    output = torch.empty((2 * len(parenthesization)))
+    idx = 0
+    for idx, s in enumerate(parenthesization):
+        if s == '(':
+            output[2 * idx] = 1
+            output[2 * idx + 1] = 0
+        elif s == ')':
+            output[2 * idx] = 0
+            output[2 * idx + 1] = 1
+    return output
 
 class ParenthesizationDataset(Dataset):
     def __init__(self, n):
