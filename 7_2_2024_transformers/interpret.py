@@ -13,7 +13,14 @@ def plot_linear_layer(
     Parameters:
         layer (nn.Linear): The Linear layer for which the weights are to be visualized.
     """
-    # TODO
+    with torch.no_grad():
+        weights = layer.weight
+        plt.imshow(weights, cmap="bwr", aspect="auto", interpolation="none")
+        plt.colorbar(label="Weight")
+        plt.xlabel("Input")
+        plt.ylabel("Output")
+        plt.title("Linear Layer Weights")
+        plt.show()
     return
 
 
@@ -35,7 +42,13 @@ def incorrect_predictions(model, dataloader):
 
     with torch.no_grad():
         incorrect_predictions = [[], []]
-        # TODO
+        for data in dataloader:
+            inputs, labels = data
+            output = model(inputs, mask=padding_mask(inputs))
+            predictions = torch.argmax(torch.select(output, 1, 0), dim=1)
+            for input, label, prediction in zip(inputs, labels, predictions):
+                if label != prediction.item():
+                    incorrect_predictions[label].append(input.tolist())
         return incorrect_predictions
 
 
@@ -53,10 +66,14 @@ def token_contributions(model, single_input):
     Returns:
         List[float]: A list of contributions of each token to the model's output.
     """
-    output = model(single_input, mask=padding_mask(single_input))
+    model.eval()
+    output = model(single_input)
 
     result = []
-    # TODO
+    for i in range(single_input.shape[0]):
+        t = single_input.clone()
+        t[i] = 1 if t[i] == 0 else 0
+        result.append((output - model(t)).abs().sum().item())
     return result
 
 def activations(model, dataloader):
@@ -71,6 +88,18 @@ def activations(model, dataloader):
     Returns:
         List[int]: A list of frequencies for each hidden feature in the feedforward layer of the model.
     """
-    result = []
-    # TODO
-    return result
+    model.eval()
+    activation_counts = {}
+
+    for inputs, _ in dataloader:
+        with torch.no_grad():
+            outputs = model(inputs)
+
+        activation = model.encoder.layers[0].activations
+        for layer_activations in activation:
+            for i, feature in enumerate(layer_activations):
+                if i not in activation_counts:
+                    activation_counts[i] = 0
+                activation_counts[i] += feature
+
+    return activation_counts.values()
